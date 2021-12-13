@@ -4,7 +4,14 @@ spring:
     username: root
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
-    
+  cloud:
+    stream:
+      bindings:
+        customer-out:
+          content-type: application/json
+          destination: customer-topic
+          group: orchestrator
+             
   jpa:
     show-sql: true
     hibernate:

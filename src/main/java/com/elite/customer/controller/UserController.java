@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.elite.customer.config.JwtUtil;
 import com.elite.customer.entity.User;
+import com.elite.customer.kafka.source.CustomerEventSource;
+import com.elite.customer.model.CustomerEvent.Status;
+import com.elite.customer.model.LoanRequestEvent;
 import com.elite.customer.model.LoginRequest;
 import com.elite.customer.model.UserResponse;
 import com.elite.customer.service.CustomerServices;
@@ -27,6 +30,9 @@ public class UserController {
 
 	@Autowired
 	private JwtUtil utils;
+	
+	@Autowired
+	private CustomerEventSource event;
 
 	@PostMapping(path = "/user/login")
 	public ResponseEntity<UserResponse> addEntity(@RequestBody LoginRequest user) throws JsonProcessingException {
@@ -69,6 +75,20 @@ public class UserController {
 	@GetMapping(path = "/user/{id}")
 	public User getById(@PathVariable("id") Long id) {
 		return this.service.getById(id);
+	}
+	
+	
+	@PostMapping(path = "/user/loan")
+	public ResponseEntity<User> validateCustomer(@RequestBody LoanRequestEvent request) {
+		User user = this.service.getById(request.getCustomerId());
+		
+		if(user == null || user.getCreditScore() < 800) {
+			event.publishLoanEvent(user, request.getLoanId(), Status.FAILURE);
+			return ResponseEntity.ok(user);
+		}
+		
+		event.publishLoanEvent(user, request.getLoanId(), Status.SUCCESS);
+		return ResponseEntity.ok(user);
 	}
 
 }

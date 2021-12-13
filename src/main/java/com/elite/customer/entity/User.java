@@ -44,6 +44,9 @@ public class User {
 
 	@Column(name = "status")
 	private int status;
+	
+	@Column(name = "creditscore")
+	private int creditScore;
 
 	@OneToMany(mappedBy = "user")
 	private List<Ticket> ticket;
